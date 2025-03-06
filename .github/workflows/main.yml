@@ -1,7 +1,39 @@
-name: CI
-on: [push]
+name: Windows RDP Setup
 
-jobs: 
-build: 
-runs-on: windows-latest
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup-windows-rdp:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up RDP
+        run: |
+          # Enable RDP
+          Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'AutoAdminLogon' -Value '1'
+          Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'DefaultUser Name' -Value 'YourUsername'
+          Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'DefaultPassword' -Value 'YourPassword'
+          # Allow RDP connections
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
+          # Enable Network Level Authentication
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name 'User Authentication' -Value 1
+
+      - name: Start RDP service
+        run: |
+          # Start the RDP service
+          Start-Service -Name TermService
+          # Optionally, you can add a command to check the status of the service
+          Get-Service -Name TermService
+
+      - name: Output RDP connection info
+        run: |
+          $ip = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -eq 'Dhcp' }).IPAddress
+          Write-Host "RDP is set up. Connect using: $ip"
+          
 
