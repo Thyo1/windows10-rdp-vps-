@@ -1,14 +1,19 @@
-# This is a basic workflow to help you get startname: CI
- on: [push]
+name: RDP with Ngrok
+on: [push]
 
- jobs: 
-build: 
-runs-on: windows-latest
+jobs:
+  build:
+    runs-on: windows-latest
 
- steps: 
-– name: Download ngrok
- run: wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip 
-– name: unzip ngrok run: unzip ngrok-stable-windows-amd64.zip 
-– name: Connect to ngrok
- run: ./ngrok.exe 2qwCiSvAAQwoZTZ1vjpUOLkE8je_55XuCScaMWMyyaFRkLJu2 && ./ngrok.exe tcp 3389
+    steps:
+      - name: Download ngrok
+        run: Invoke-WebRequest -Uri "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip" -OutFile "ngrok.zip"
 
+      - name: Extract ngrok
+        run: Expand-Archive ngrok.zip -DestinationPath .
+
+      - name: Setup Ngrok Auth Token
+        run: .\ngrok\ngrok.exe authtoken 2qwCiSvAAQwoZTZ1vjpUOLkE8je_55XuCScaMWMyyaFRkLJu2
+
+      - name: Start Ngrok TCP for RDP
+        run: .\ngrok\ngrok.exe tcp 3389
